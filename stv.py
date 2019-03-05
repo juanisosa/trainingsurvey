@@ -19,7 +19,13 @@ def get_parameters(course_count): #get user input
     print('-'*40)
     return course_no
 
-#load the survey data into a DataFrame
+def voting_summary(voting_data):
+    """right now just producing dataframe with sum of votes for each courses
+    """
+    voting_sum = voting_data.apply(pd.value_counts)
+    return voting_sum
+
+#load the survey data into a DataFrame and drop all NaN rows
 voting_data = pd.read_csv('americas.csv').dropna(thresh=1)
 #determine the number of courses offered
 votes_count  = len(voting_data.index)
@@ -29,17 +35,16 @@ course_count = voting_data.shape[1]
 course_no = get_parameters(course_count)
 #Calculate the threshhold for winners
 droop_quota = (votes_count/course_no + 1) + 1
-#get number of courses avilable to
-vote_tally_list = [0] * course_count
 #create Series to count votes
-vote_tally = pd.Series(data = vote_tally_list, index = list(voting_data))
-#Vote count loop
-
+vote_tally = pd.DataFrame({'Votes' : pd.Series(data = [0] * course_count, index = list(voting_data))})
+#Voting summary of each course by priority
+voting_table = voting_summary(voting_data).dropna(thresh=1)
+voting_table.to_csv(r'Tally.csv') #export to CSV to verify
 
 
 print('\nThere are {} courses and you chose to pick {}.\n'.format(course_count, course_no)) #temp as a test of load
 print('The Droop Quota is {}\n'.format(droop_quota))
 print('-'*40)
-print(voting_data)
-print('-'*40)
 print(vote_tally)
+print('-'*40)
+print(voting_table)
