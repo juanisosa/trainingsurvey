@@ -18,15 +18,28 @@ def get_parameters(course_count): #get user input
 
     print('-'*40)
     return course_no
-    
-    
-voting_data = pd.read_csv('americas.csv') #load the survey data into a DataFrame
-votes_count  = len(voting_data.index) #determine the number of courses offered in survey
-course_no = get_parameters(course_count) #get courses to select from user
-droop_quota = (votes_count/course_no + 1) + 1 #Calculate the threshhold for votes
-vote_tally_list = [0] * voting_data.shape[1] #get number of courses avilable to choose from
-vote_tally = pd.series(data = vote_tally_list, index = list(voting_data)) #create series to count votes
 
-print('\nThere are {} courses and you chose to pick {}.\n\n'.format(course_count, course_no)) #temp as a test of load
+#load the survey data into a DataFrame
+voting_data = pd.read_csv('americas.csv').dropna(thresh=1)
+#determine the number of courses offered
+votes_count  = len(voting_data.index)
+#get number of courses available to pick from
+course_count = voting_data.shape[1]
+#get courses to select from user
+course_no = get_parameters(course_count)
+#Calculate the threshhold for winners
+droop_quota = (votes_count/course_no + 1) + 1
+#get number of courses avilable to
+vote_tally_list = [0] * course_count
+#create Series to count votes
+vote_tally = pd.Series(data = vote_tally_list, index = list(voting_data))
+#Vote count loop
+
+
+
+print('\nThere are {} courses and you chose to pick {}.\n'.format(course_count, course_no)) #temp as a test of load
+print('The Droop Quota is {}\n'.format(droop_quota))
 print('-'*40)
-print(voting_data['index'])
+print(voting_data)
+print('-'*40)
+print(vote_tally)
