@@ -28,27 +28,18 @@ def get_parameters(): #get user input
 def counting_votes(voting_data, course_no):
     #Voting summary of each course by priority
     voting_sum = voting_data.apply(pd.value_counts)
-    #Calculate the threshhold for winners
-    #droop_quota = int(len(voting_data.index)/course_no + 1) + 1
-    #print('\nThe Droop Quota is {}\n'.format(droop_quota))
-    #create Series to count votes
-    vote_tally = voting_sum.loc[1].fillna(0)
-    loser = voting_sum.sum().idxmin()
+
+    #create Series to count votes and drop courses with no votes
+    vote_tally = voting_sum.loc[1].dropna()
+
+    #create list of courses that move to next round
+    next_round = vote_tally.index.tolist()
+    print(next_round)
+    #determine loser course of round
+    loser = vote_tally.idxmin()
     print('\n{} has {} votes\n'.format(loser, vote_tally.min()))
-    voting_sum.to_csv('tally.csv')
-    #for 
-    #voting_data = voting_data.drop(vote_tally.(insert argument to find list of courses with 0 votes), axis=1)
-    '''while vote_tally.size > course_no:
-        print(loser)
-        if voting_sum[loser].sum() == 0:
-            print('no votes')'''
 
 
-    #i = 2
-    '''while i < course_no:
-        vote_round_result = voting_sum.loc[i].fillna(0)
-        vote_tally = vote_tally + vote_round_result
-        i += 1'''
     return vote_tally
 
 #load the survey data into a DataFrame and drop all NaN rows
