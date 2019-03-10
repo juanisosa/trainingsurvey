@@ -25,32 +25,55 @@ def get_parameters(): #get user input
     print('-'*40)
     return course_no
 
-def counting_votes(voting_data, course_no):
-    #Voting summary of each course by priority
+def counting_round(voting_data, course_no):
+    """Voting summary of each course by priority as a dataframe with rows for
+    each priority"""
     voting_sum = voting_data.apply(pd.value_counts)
+    voting_sum.to_csv('voting_sum.csv')
 
-    #create Series to count votes and drop courses with no votes
+    #create Series to count votes with priority 1 and drop courses with no votes
     vote_tally = voting_sum.loc[1].dropna()
+    print('\nNext Round')
+    print(vote_tally)
+    print('-'*40)
 
     #create list of courses that move to next round
     next_round = vote_tally.index.tolist()
+    print('\nNext Round')
     print(next_round)
-    #determine loser course of round
-    loser = vote_tally.idxmin()
-    print('\n{} has {} votes\n'.format(loser, vote_tally.min()))
+    print('-'*40)
 
+    '''determine loser course of round firt we find series of courses with
+    fewest votes'''
 
-    return vote_tally
+    losers = vote_tally.loc[vote_tally == vote_tally.min()].index.tolist()
+
+    print('\nLoser List')
+    print(losers)
+    print('-'*40)
+
+    '''Here I have to find the course with the lowest weighted average of votes who also has the min in vote_tally'''
+
+    if len(losers) == 1:
+        loser = losers
+    else:
+        loser = vote_tally.loc[vote_tally == vote_tally.min(losers)].index
+
+    print('\nloser')
+    print(loser)
+    print('-'*40)
+    return next_round
 
 #load the survey data into a DataFrame and drop all NaN rows
 voting_data = pd.read_csv('americas.csv').dropna(thresh=1).dropna(axis='columns', thresh=1)
-voting_data.to_csv('americas-no-votes-trimmed.csv')
 
 #get courses to select from user
 course_no = get_parameters()
 
 #count the votes with function
-winners = counting_votes(voting_data, course_no)
+winners = counting_round(voting_data, course_no)
+
+
 
 
 
