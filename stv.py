@@ -25,60 +25,62 @@ def get_parameters(): #get user input
     print('-'*40)
     return course_no
 
-def counting_round(voting_data, course_no):
-    """Voting summary of each course by priority as a dataframe with rows for
-    each priority"""
-    voting_sum = voting_data.apply(pd.value_counts)
-    voting_sum.to_csv('voting_sum.csv')
-
-    #create Series to count votes with priority 1 and drop courses with no votes
-    vote_tally = voting_sum.loc[1].dropna()
-    print('\nNext Round')
-    print(vote_tally)
-    print('-'*40)
-
-    #create list of courses that move to next round
-    next_round = vote_tally.index.tolist()
-    print('\nNext Round')
-    print(next_round)
-    print('-'*40)
-
-    '''determine loser course of round firt we find series of courses with
-    fewest votes'''
-
-    losers = vote_tally.loc[vote_tally == vote_tally.min()].index.tolist()
-
-    print('\nLoser List')
-    print(losers)
-    print('-'*40)
-
-    '''Here I have to find the course with the lowest weighted average of votes who also has the min in vote_tally'''
-
-    if len(losers) == 1:
-        loser = losers
-    else:
-        loser = vote_tally.loc[vote_tally == vote_tally.min(losers)].index
-
-    print('\nloser')
-    print(loser)
-    print('-'*40)
-    return next_round
-
 #load the survey data into a DataFrame and drop all NaN rows
 voting_data = pd.read_csv('americas.csv').dropna(thresh=1).dropna(axis='columns', thresh=1)
 
 #get courses to select from user
 course_no = get_parameters()
 
-#count the votes with function
-winners = counting_round(voting_data, course_no)
+#perform a round of counting
+"""Voting summary of each course by priority as a dataframe with rows for
+each priority"""
+voting_sum = voting_data.apply(pd.value_counts)
+voting_sum.to_csv('voting_sum.csv')
 
-
-
-
-
-#vote_tally = vote_tally + vote_round_result
-
+#create Series to count votes with priority 1 and drop courses with no votes
+vote_tally = voting_sum.loc[1].dropna()
+print('\nRound Count Results')
+print(vote_tally)
 print('-'*40)
-print('\n')
-print(winners)
+
+print('\n{} courses got votes and there are {} slots to fill.\n'.format(len(vote_tally), course_no))
+
+if len(vote_tally) > course_no:
+    print('One more round')
+
+    while len(vote_tally) > course_no:
+
+        '''determine loser course of round firt we find series of courses with
+        fewest votes as option 1'''
+
+        losers = vote_tally.loc[vote_tally == vote_tally.min()].index.tolist()
+
+        #conditional statement to find loser based on losers list
+        if len(losers) == 1:
+            loser = losers[0]
+        #if tie then losers length > 1 then we do while loop to look at tie breaker based on number of next priority
+        elif len(losers) > 1:
+            i = 2
+            tie_breaker = voting_sum.loc[i, losers].fillna(0)
+            tie_breaker = tie_breaker.loc[tie_breaker == tie_breaker.min()].index.tolist()
+            if len(tie_breaker) == 1:
+                loser = tie_breaker[0]
+            else:
+                while len(tie_breaker) > 1:
+                    i += 1
+                    tie_breaker = voting_sum.loc[i, tie_breaker].fillna(0)
+                    tie_breaker = tie_breaker.loc[tie_breaker == tie_breaker.min()].index.tolist()
+                    loser = tie_breaker[0]
+
+        #create list of courses that move to next round by removing loser from vote_tally
+        next_round = vote_tally.index.tolist()
+        next_round.pop(next_round.index(loser))
+
+        '''figure out how to substract 1 from rows in americas.csv where the loser received first ranking'''
+
+elif len(vote_tally) == course_no:
+    print('The courses bellow are the chosen ones and their respective votes:')
+    print(vote_tally)
+elif len(vote_tally) < course_no:
+    print('Not enough votes were received to fill all training slots offered. This was the results:')
+    print(vote_tally)
