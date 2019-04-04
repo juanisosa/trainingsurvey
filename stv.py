@@ -20,14 +20,14 @@ def get_parameters(): #get user input
 
     print('-'*40)
 
-    print('\nThere are {} courses and you chose to pick {}.\n'.format(course_count, course_no)) #temp as a test of load
+    print('\nThere are {} courses to choose from and {} slots to fill.\n'.format(course_count, course_no)) #temp as a test of load
 
     print('-'*40)
     return course_no
 
 #load the survey data into a DataFrame and drop all NaN rows
 voting_data = pd.read_csv('americas.csv').dropna(thresh=1).dropna(axis='columns', thresh=1)
-voting_data.to_csv('voting_data.csv')
+#voting_data.to_csv('voting_data.csv')
 
 #get courses to select from user
 course_no = get_parameters()
@@ -36,17 +36,18 @@ course_no = get_parameters()
 """Voting summary of each course by priority as a dataframe with rows for
 each priority"""
 voting_sum = voting_data.apply(pd.value_counts)
-voting_sum.to_csv('voting_sum.csv')
+#voting_sum.to_csv('voting_sum.csv')
 
 #create Series to count votes with priority 1 and drop courses with no votes
 vote_tally = voting_sum.loc[1].dropna()
-
-print('\n{} courses got votes and there are {} slots to fill. More rounds are needed\n'.format(len(vote_tally), course_no))
-
-print('\nThe resuts of round 1 was:')
-print(vote_tally)
+#vote_tally.to_csv('voting_tally.csv')
 
 if len(vote_tally) > course_no:
+    print('\n{} courses got votes and there are {} slots to fill. More rounds are needed\n'.format(len(vote_tally), course_no))
+
+    print('\nThe resuts of round 1 was:')
+    print(vote_tally)
+
     n = 2
     while len(vote_tally) > course_no:
 
@@ -66,18 +67,17 @@ if len(vote_tally) > course_no:
             if len(tie_breaker) == 1:
                 loser = tie_breaker[0]
             else:
-                while len(tie_breaker) > 1:
+                while len(tie_breaker) > 1 and i < voting_sum.shape[0]:
                     i += 1
                     tie_breaker = voting_sum.loc[i, tie_breaker].fillna(0)
                     tie_breaker = tie_breaker.loc[tie_breaker == tie_breaker.min()].index.tolist()
                     loser = tie_breaker[0]
 
-        print('\nThe loser of round {} was:'.format(n-1))
+        print('\nThe loser of round {} was:\n'.format(n-1))
         print(loser)
+        print('-'*40)
 
-        #create list of courses that move to next round by removing loser from vote_tally
-        next_round = vote_tally.index.tolist()
-        next_round.pop(next_round.index(loser))
+
 
         #get list of voters who chose loser as first priority
         voters_losers = voting_data.loc[voting_data[loser] == 1].index.tolist()
@@ -85,27 +85,39 @@ if len(vote_tally) > course_no:
         #substract 1 from priority chosen by these voters
         voting_data.loc[voters_losers, : ] = voting_data.loc[voters_losers, :].subtract(1)
         voting_data = voting_data.drop(loser, axis=1)
-        voting_data.to_csv('voting_data_{}.csv'.format(n))
+        #voting_data.to_csv('voting_data_{}.csv'.format(n))
 
         #recount voting_sum with new priorities
         voting_sum = voting_data.apply(pd.value_counts)
-        voting_sum.to_csv('voting_sum_{}.csv'.format(n))
+        #voting_sum.to_csv('voting_sum_{}.csv'.format(n))
 
         #redo vote_tally with new voting_sum
         vote_tally = voting_sum.loc[1].dropna()
-        print('-'*40)
-        print('\nThe resuts of round {} was:'.format(n))
-        print(vote_tally)
+        #print('-'*40)
+        #print('\nThe resuts of round {} was:'.format(n))
+        #print(vote_tally)
 
         n += 1
 
     winners = vote_tally
     print('\nThe follwing courses were selected by the voters:\n')
     print(winners)
+    print('\n')
+    print('-'*40)
+    print('\n')
 
 elif len(vote_tally) == course_no:
-    print('The courses bellow are the chosen ones and their respective votes:')
+    print('-'*40)
+    print('\nThe courses bellow are the chosen ones and their respective votes:\n')
     print(vote_tally)
+    print('\n')
+    print('-'*40)
+    print('\n')
 elif len(vote_tally) < course_no:
-    print('Not enough votes were received to fill all training slots offered. This was the results:')
+    print('-'*40)
+    print('\nNot enough votes were received to fill all training slots offered.\n')
+    print('This is the result of the count of voters first priority:\n')
     print(vote_tally)
+    print('\n')
+    print('-'*40)
+    print('\n')
